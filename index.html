@@ -11,269 +11,185 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <title>MeetingNote</title>
   <style>
-    /* ── Reset & Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --blue:   #007AFF;
+      --red:    #FF3B30;
       --green:  #34C759;
       --orange: #FF9500;
-      --red:    #FF3B30;
       --purple: #AF52DE;
       --bg:     #F2F2F7;
       --card:   #FFFFFF;
       --sep:    #C6C6C8;
       --text1:  #000000;
-      --text2:  #3C3C43;
+      --text2:  #3C3C43CC;
       --text3:  #8E8E93;
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bot: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+      --safe-b: env(safe-area-inset-bottom, 0px);
       font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-      font-size: 16px;
-      color: var(--text1);
       background: var(--bg);
+      color: var(--text1);
     }
-    body { min-height: 100dvh; overflow-x: hidden; }
-
-    /* ── Screens ── */
+    body { min-height: 100dvh; }
     .screen { display: flex; flex-direction: column; min-height: 100dvh; }
-    .screen[hidden] { display: none; }
+    .screen[hidden] { display: none !important; }
 
-    /* ── Nav Bar ── */
-    .nav-bar {
-      background: rgba(242,242,247,0.92);
+    /* Nav */
+    .nav {
+      background: rgba(242,242,247,.92);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 0.5px solid var(--sep);
-      padding: calc(var(--safe-top) + 10px) 16px 10px;
+      border-bottom: .5px solid var(--sep);
+      padding: calc(var(--safe-t) + 10px) 16px 10px;
       position: sticky; top: 0; z-index: 10;
     }
-    .nav-bar h1 { font-size: 17px; font-weight: 600; text-align: center; }
-    .nav-row { display: flex; align-items: center; justify-content: space-between; }
-    .nav-title { font-size: 17px; font-weight: 600; flex: 1; text-align: center; }
+    .nav-row { display: flex; align-items: center; }
+    .nav-title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; }
     .nav-btn {
       background: none; border: none; color: var(--blue);
-      font-size: 17px; padding: 4px 0; cursor: pointer; min-width: 60px;
+      font-size: 17px; cursor: pointer; padding: 4px 0; min-width: 56px;
     }
     .nav-btn.right { text-align: right; }
-    .nav-btn.icon { font-size: 20px; }
 
-    /* ── Home Screen ── */
-    #screen-home .scroll-area {
-      flex: 1; overflow-y: auto; padding: 16px;
-      padding-bottom: calc(var(--safe-bot) + 80px);
-    }
-    .import-area {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
-    }
-    #model-status {
-      font-size: 13px; color: var(--text3);
-    }
-    #model-status.status-ready { color: var(--green); }
-    #progress-wrap { width: 100%; }
-    .progress-track {
-      height: 4px; background: var(--sep); border-radius: 2px; overflow: hidden;
-    }
-    #progress-bar {
-      height: 100%; background: var(--blue); width: 0%;
-      transition: width 0.3s ease; border-radius: 2px;
-    }
-    #import-btn {
-      background: var(--blue); color: #fff;
-      border: none; border-radius: 12px;
-      padding: 14px 32px; font-size: 16px; font-weight: 600;
-      cursor: pointer; width: 100%;
-    }
-    #import-btn:disabled { opacity: 0.4; cursor: default; }
-    .import-hint { font-size: 13px; color: var(--text3); text-align: center; }
-    .import-hint ol { text-align: left; padding-left: 20px; margin-top: 6px; }
-    .import-hint li { margin-bottom: 4px; }
+    /* Scroll */
+    .scroll { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: calc(var(--safe-b) + 24px); }
 
-    .section-label {
-      font-size: 13px; font-weight: 600; color: var(--text3);
-      text-transform: uppercase; letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-    #empty-state {
-      text-align: center; padding: 48px 24px; color: var(--text3);
-    }
-    #empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
-    #empty-state p { font-size: 15px; }
+    /* Cards */
+    .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 
-    /* ── Meeting Cards ── */
-    #meeting-list { display: flex; flex-direction: column; gap: 10px; }
-    .card {
-      background: var(--card); border-radius: 12px;
-      padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    /* ── Home ── */
+    .rec-card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 28px 20px; }
+    #btn-record {
+      width: 88px; height: 88px; border-radius: 50%; border: none; cursor: pointer;
+      background: var(--red); display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(255,59,48,.35);
+      transition: transform .1s, box-shadow .1s;
     }
-    .meeting-item { cursor: pointer; }
-    .meeting-item-header { display: flex; justify-content: space-between; align-items: center; }
-    .meeting-title { font-size: 16px; font-weight: 600; }
-    .btn-delete {
-      background: none; border: none; color: var(--text3);
-      font-size: 22px; cursor: pointer; padding: 0 0 0 8px; line-height: 1;
+    #btn-record:active { transform: scale(.94); }
+    #btn-record .mic-icon { font-size: 36px; }
+    #btn-record.recording { background: var(--red); animation: pulse 1.4s infinite; }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 4px 16px rgba(255,59,48,.35); }
+      50%      { box-shadow: 0 4px 28px rgba(255,59,48,.65); }
     }
-    .meeting-date { font-size: 12px; color: var(--text3); margin: 4px 0; }
-    .meeting-preview {
-      font-size: 14px; color: var(--text2);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    #btn-record.stopped { background: var(--blue); animation: none; }
+    #rec-label { font-size: 15px; color: var(--text2); font-weight: 500; }
+    #rec-timer { font-size: 28px; font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: 2px; }
 
-    /* ── Processing Screen ── */
-    #screen-processing {
-      align-items: center; justify-content: center; gap: 24px; padding: 40px;
+    /* Live transcript preview */
+    #live-box {
+      background: var(--bg); border-radius: 10px; padding: 12px;
+      min-height: 80px; max-height: 200px; overflow-y: auto;
+      font-size: 14px; line-height: 1.6; color: var(--text1);
+      border: 1.5px solid var(--sep);
     }
-    .spinner {
-      width: 48px; height: 48px;
-      border: 4px solid var(--sep); border-top-color: var(--blue);
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #processing-msg { font-size: 16px; color: var(--text2); text-align: center; }
+    #live-box .interim { color: var(--text3); }
+    #live-hint { font-size: 12px; color: var(--text3); text-align: center; }
 
-    /* ── Detail Screen ── */
-    #screen-detail { background: var(--bg); }
-    .tabs {
-      display: flex; background: var(--card);
-      border-bottom: 0.5px solid var(--sep);
-      padding: 8px 16px 0;
-    }
+    /* Meeting list */
+    .section-label { font-size: 13px; font-weight: 600; color: var(--text3);
+      text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .meeting-row { display: flex; flex-direction: column; gap: 3px; cursor: pointer; }
+    .meeting-row-header { display: flex; justify-content: space-between; align-items: center; }
+    .meeting-row-title { font-size: 16px; font-weight: 600; }
+    .meeting-row-date { font-size: 12px; color: var(--text3); }
+    .meeting-row-preview { font-size: 14px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn-x { background: none; border: none; font-size: 22px; color: var(--text3); cursor: pointer; padding-left: 8px; }
+    #empty { text-align: center; padding: 48px 24px; color: var(--text3); }
+    #empty .ei { font-size: 48px; margin-bottom: 12px; }
+
+    /* ── Detail ── */
+    .tabs { display: flex; background: var(--card); border-bottom: .5px solid var(--sep); padding: 8px 16px 0; }
     .tab-btn {
-      flex: 1; background: none; border: none;
-      padding: 10px 0; font-size: 15px; font-weight: 500;
-      color: var(--text3); cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: color 0.15s, border-color 0.15s;
+      flex: 1; background: none; border: none; padding: 10px 0;
+      font-size: 15px; font-weight: 500; color: var(--text3); cursor: pointer;
+      border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
     }
     .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab-body { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: calc(var(--safe-b) + 24px); }
 
-    .detail-scroll {
-      flex: 1; overflow-y: auto;
-      padding: 16px 16px calc(var(--safe-bot) + 24px);
-    }
-
-    /* Search bar (transcript tab) */
-    .search-bar {
-      display: flex; align-items: center; gap: 8px;
-      background: var(--card); border-radius: 10px;
-      padding: 8px 12px; margin-bottom: 12px;
-    }
-    .search-bar input {
-      flex: 1; border: none; outline: none; background: transparent;
-      font-size: 15px; color: var(--text1);
-    }
-    #search-clear { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; }
-
-    /* Summary sections */
-    .summary-section {
-      background: var(--card); border-radius: 12px;
-      padding: 14px 16px; margin-bottom: 12px;
-    }
-    .section-title {
-      font-size: 14px; font-weight: 600; color: var(--text2);
-      margin-bottom: 10px;
-    }
-    .summary-section ul { padding-left: 18px; }
-    .summary-section li {
-      font-size: 14px; margin-bottom: 6px; line-height: 1.5;
-    }
-    .summary-section.action .section-title { color: var(--blue); }
-    .summary-section.decision .section-title { color: var(--green); }
+    /* Summary */
+    .s-section { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+    .s-title { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 10px; }
+    .s-section.action .s-title { color: var(--blue); }
+    .s-section.decision .s-title { color: var(--green); }
+    .s-section ul { padding-left: 18px; }
+    .s-section li { font-size: 14px; line-height: 1.6; margin-bottom: 4px; }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip {
-      background: rgba(175,82,222,0.12); color: var(--purple);
-      border-radius: 20px; padding: 4px 12px; font-size: 13px;
-    }
+    .chip { background: rgba(175,82,222,.12); color: var(--purple); border-radius: 20px; padding: 4px 12px; font-size: 13px; }
 
-    /* Transcript segments */
-    .segment {
-      display: flex; gap: 10px; margin-bottom: 10px;
-      background: var(--card); border-radius: 10px; padding: 10px 12px;
-    }
-    .seg-time {
-      font-size: 12px; font-variant-numeric: tabular-nums;
-      color: var(--text3); white-space: nowrap; padding-top: 1px;
-      min-width: 42px;
-    }
-    .seg-text { font-size: 14px; line-height: 1.5; }
+    /* Transcript */
+    .search-row { display: flex; align-items: center; gap: 8px; background: var(--card);
+      border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; }
+    .search-row input { flex: 1; border: none; outline: none; background: transparent; font-size: 15px; }
+    .btn-clear { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; }
+    .seg { display: flex; gap: 10px; background: var(--card); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+    .seg-t { font-size: 12px; color: var(--text3); white-space: nowrap; min-width: 42px; padding-top: 1px; font-variant-numeric: tabular-nums; }
+    .seg-tx { font-size: 14px; line-height: 1.5; }
     mark { background: #FFEB3B; border-radius: 2px; padding: 0 2px; }
     .empty-msg { text-align: center; color: var(--text3); padding: 40px; }
+
+    /* Unsupported */
+    #unsupported { display: none; }
+    .warn-card { background: #FFF3CD; border-radius: 12px; padding: 20px; margin: 24px 16px; text-align: center; }
+    .warn-card h2 { color: #856404; margin-bottom: 8px; }
+    .warn-card p { color: #664D03; font-size: 14px; line-height: 1.6; }
   </style>
 </head>
 <body>
 
 <!-- ── Home ── -->
 <div id="screen-home" class="screen">
-  <div class="nav-bar">
-    <h1>MeetingNote</h1>
-  </div>
-  <div class="scroll-area">
-    <!-- 匯入區 -->
-    <div class="import-area">
-      <div id="model-status">載入模型中...</div>
-      <div id="progress-wrap">
-        <div class="progress-track"><div id="progress-bar"></div></div>
-      </div>
-      <button id="import-btn" disabled>📥 匯入錄影</button>
-      <input id="file-input" type="file" accept="video/*" hidden>
-      <div class="import-hint">
-        <strong>使用方式：</strong>
-        <ol>
-          <li>開控制中心 → 按螢幕錄影</li>
-          <li>開完會後停止錄影</li>
-          <li>點「匯入錄影」選剛才的影片</li>
-        </ol>
+  <div class="nav"><div class="nav-row"><div class="nav-title">MeetingNote</div></div></div>
+  <div class="scroll">
+
+    <!-- 錄音卡 -->
+    <div class="card rec-card">
+      <div id="rec-timer">00:00</div>
+      <button id="btn-record"><span class="mic-icon">🎙</span></button>
+      <div id="rec-label">點麥克風開始錄音</div>
+      <div id="live-box"><span style="color:var(--text3);font-size:13px">說話後會在這裡即時顯示文字…</span></div>
+      <div id="live-hint">
+        📋 建議同時開啟「螢幕錄影」留存影像備份<br>
+        語音辨識由 Apple 處理，不另存雲端
       </div>
     </div>
 
-    <!-- 會議列表 -->
+    <!-- 會議紀錄 -->
     <div class="section-label">過去的會議</div>
     <div id="meeting-list"></div>
-    <div id="empty-state" hidden>
-      <div class="empty-icon">🎙</div>
-      <p>還沒有會議紀錄<br>匯入第一份錄影開始吧</p>
+    <div id="empty">
+      <div class="ei">🎙</div>
+      <p>還沒有會議紀錄<br>按上方麥克風開始</p>
     </div>
   </div>
-</div>
-
-<!-- ── Processing ── -->
-<div id="screen-processing" class="screen" hidden>
-  <div class="spinner"></div>
-  <div id="processing-msg">處理中...</div>
 </div>
 
 <!-- ── Detail ── -->
 <div id="screen-detail" class="screen" hidden>
-  <div class="nav-bar">
+  <div class="nav">
     <div class="nav-row">
-      <button id="btn-back" class="nav-btn">‹ 返回</button>
-      <div id="detail-title" class="nav-title">會議</div>
+      <button class="nav-btn" id="btn-back">‹ 返回</button>
+      <div class="nav-title" id="detail-title">會議</div>
       <div style="display:flex;gap:4px">
-        <button id="btn-edit-title" class="nav-btn icon" title="編輯標題">✏️</button>
-        <button id="btn-share"      class="nav-btn icon" title="分享/複製">⬆️</button>
+        <button class="nav-btn right" id="btn-edit" style="font-size:18px">✏️</button>
+        <button class="nav-btn right" id="btn-share" style="font-size:18px">⬆️</button>
       </div>
     </div>
   </div>
-
-  <!-- Tabs -->
-  <div id="tabs" class="tabs">
+  <div class="tabs" id="tabs">
     <button class="tab-btn active" data-tab="summary">重點摘要</button>
-    <button class="tab-btn"       data-tab="transcript">逐字稿</button>
+    <button class="tab-btn" data-tab="transcript">逐字稿</button>
   </div>
+  <div class="tab-body" id="tab-body"></div>
+</div>
 
-  <!-- Search (transcript only) -->
-  <div id="search-wrap" class="detail-scroll" style="padding-bottom:0;padding-top:12px;flex:0">
-    <div class="search-bar" id="search-bar" hidden>
-      <span>🔍</span>
-      <input id="search-input" type="search" placeholder="搜尋逐字稿">
-      <button id="search-clear">✕</button>
-    </div>
+<!-- 不支援提示 -->
+<div id="unsupported">
+  <div class="warn-card">
+    <h2>⚠️ 瀏覽器不支援語音辨識</h2>
+    <p>請用 iPhone Safari 開啟此頁面，<br>並確認已允許「麥克風」權限。</p>
   </div>
-
-  <div class="detail-scroll" id="tab-content"></div>
 </div>
 
 <script type="module" src="app.js"></script>

@@ -1,4 +1,4 @@
-const CACHE = 'meetingnote-v1';
+const CACHE = 'meetingnote-v2';
 const SHELL = ['/', '/index.html', '/app.js', '/db.js', '/summary.js', '/worker.js'];
 
 self.addEventListener('install', e => {
