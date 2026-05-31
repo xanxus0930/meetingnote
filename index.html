@@ -129,25 +129,6 @@
     mark { background: #FFEB3B; border-radius: 2px; padding: 0 2px; }
     .empty-msg { text-align: center; color: var(--text3); padding: 40px; }
 
-    /* Import button & progress */
-    #btn-import {
-      background: none; border: 1.5px solid var(--blue); color: var(--blue);
-      border-radius: 12px; padding: 12px 20px; font-size: 15px; font-weight: 500;
-      cursor: pointer; width: 100%;
-    }
-    #btn-import:disabled { opacity: .4; cursor: default; }
-    .divider {
-      display: flex; align-items: center; gap: 8px;
-      color: var(--text3); font-size: 13px; width: 100%;
-    }
-    .divider::before, .divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--sep);
-    }
-    #import-status { width: 100%; }
-    #import-msg { font-size: 13px; color: var(--text2); text-align: center; margin-bottom: 6px; }
-    .progress-track { height: 4px; background: var(--sep); border-radius: 2px; overflow: hidden; }
-    #import-bar { height: 100%; background: var(--blue); width: 0%; transition: width .3s; border-radius: 2px; }
-
     /* Unsupported */
     #unsupported { display: none; }
     .warn-card { background: #FFF3CD; border-radius: 12px; padding: 20px; margin: 24px 16px; text-align: center; }
@@ -169,18 +150,8 @@
       <div id="rec-label">點麥克風開始錄音</div>
       <div id="live-box"><span style="color:var(--text3);font-size:13px">說話後會在這裡即時顯示文字…</span></div>
       <div id="live-hint">
-        💡 只錄到你自己的聲音<br>
-        想錄到對方請開喇叭，或用下方「匯入影片」
-      </div>
-      <div class="divider">或</div>
-      <button id="btn-import">🎬 匯入螢幕錄影轉文字</button>
-      <input id="file-input" type="file" accept="video/*" hidden>
-      <div id="import-status" hidden>
-        <div id="import-msg">載入中…</div>
-        <div class="progress-track"><div id="import-bar"></div></div>
-      </div>
-      <div style="font-size:12px;color:var(--text3);text-align:center">
-        首次需下載 ~250MB 模型（Wi-Fi 建議），之後離線可用
+        📢 想錄到對方的聲音：Teams 切換成<strong>喇叭模式</strong><br>
+        聲音播出來，麥克風就能同時收到兩側
       </div>
     </div>
 

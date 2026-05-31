@@ -3,126 +3,17 @@ import { generateSummary } from './summary.js';
 
 // ── State ────────────────────────────────────────────────
 const S = {
-  // 即時錄音
   recognition: null,
   recording: false,
   segments: [],
   interimText: '',
   startTime: null,
   timerInterval: null,
-  // 影片匯入
-  worker: null,
-  workerReady: false,
-  // 通用
   meetings: [],
   current: null,
   tab: 'summary',
   search: '',
 };
-
-// ── Whisper Worker (for video import) ────────────────────
-function initWorker() {
-  S.worker = new Worker('./worker.js', { type: 'module' });
-  S.worker.onmessage = ({ data }) => {
-    switch (data.type) {
-      case 'status':
-        setImportUI(data.text, null, true);
-        break;
-      case 'download':
-        setImportUI(`下載模型 ${data.pct}%…`, data.pct, true);
-        break;
-      case 'ready':
-        S.workerReady = true;
-        $('btn-import').disabled = false;
-        hideImportUI();
-        // 模型剛載入完成，直接開啟檔案選擇
-        $('file-input').click();
-        break;
-      case 'done':
-        onVideoTranscribed(data.segments);
-        break;
-      case 'error':
-        alert(data.text);
-        hideImportUI();
-        break;
-    }
-  };
-  // 預先載入 whisper-small（背景下載，不擋 UI）
-  S.worker.postMessage({ type: 'load', payload: { model: 'whisper-small' } });
-}
-
-function setImportUI(msg, pct, show) {
-  const el = $('import-status');
-  el.hidden = !show;
-  $('import-msg').textContent = msg;
-  if (pct !== null) $('import-bar').style.width = pct + '%';
-}
-function hideImportUI() { $('import-status').hidden = true; }
-
-// ── Audio extraction from video ───────────────────────────
-async function extractAudio(file) {
-  setImportUI('抽取音訊…', null, true);
-  const buf = await file.arrayBuffer();
-  const tmpCtx = new AudioContext();
-  const decoded = await tmpCtx.decodeAudioData(buf);
-  await tmpCtx.close();
-
-  const TARGET = 16000;
-  const offCtx = new OfflineAudioContext(
-    1, Math.ceil(decoded.duration * TARGET), TARGET
-  );
-  const src   = offCtx.createBufferSource();
-  const gain  = offCtx.createGain();
-  gain.gain.value = 1 / decoded.numberOfChannels;
-  src.buffer = decoded;
-  for (let ch = 0; ch < decoded.numberOfChannels; ch++) {
-    const sp = offCtx.createChannelSplitter(decoded.numberOfChannels);
-    src.connect(sp);
-    sp.connect(gain, ch, 0);
-  }
-  gain.connect(offCtx.destination);
-  src.start(0);
-
-  const resampled = await offCtx.startRendering();
-  return resampled.getChannelData(0);
-}
-
-async function handleVideoImport(file) {
-  if (!file) return;
-  $('btn-import').disabled = true;
-  try {
-    const audio = await extractAudio(file);
-    setImportUI('送出語音辨識…', null, true);
-    S.worker.postMessage(
-      { type: 'transcribe', payload: { audio } },
-      [audio.buffer]
-    );
-    // 暫存 title 用
-    S._pendingTitle = defaultTitle() + '（錄影）';
-  } catch (e) {
-    alert('影片讀取失敗：' + e.message);
-    $('btn-import').disabled = false;
-    hideImportUI();
-  }
-}
-
-async function onVideoTranscribed(segments) {
-  $('btn-import').disabled = false;
-  hideImportUI();
-  if (!segments.length) { alert('未偵測到語音'); return; }
-
-  const meeting = {
-    id:       crypto.randomUUID(),
-    title:    S._pendingTitle ?? defaultTitle(),
-    date:     Date.now(),
-    segments,
-    summary:  generateSummary(segments),
-  };
-  await saveMeeting(meeting);
-  S.meetings = await getAllMeetings();
-  renderHome();
-  showMeeting(meeting);
-}
 
 // ── SpeechRecognition setup ───────────────────────────────
 function initSpeech() {
@@ -367,24 +258,6 @@ function bindEvents() {
     S.recording ? stopRecording() : startRecording();
   });
 
-  $('btn-import').addEventListener('click', () => {
-    if (!S.worker) {
-      // 第一次點：初始化 worker 並開始下載模型
-      $('btn-import').disabled = true;
-      initWorker();
-      return;
-    }
-    if (!S.workerReady) {
-      // 模型還在下載
-      return;
-    }
-    $('file-input').click();
-  });
-  $('file-input').addEventListener('change', e => {
-    const f = e.target.files[0];
-    e.target.value = '';
-    if (f) handleVideoImport(f);
-  });
 
   $('meeting-list').addEventListener('click', async e => {
     const del  = e.target.closest('[data-del]');
